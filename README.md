@@ -27,3 +27,10 @@ This plugin makes <kbd>Tab</kbd> indent by 2 spaces and <kbd>Shift</kbd>+<kbd>Ta
 ## License
 
 [MIT](LICENSE)
+
+## Releasing
+
+1. Bump `version` in `manifest.json` and add it to `versions.json`.
+2. Commit, then push a tag with the exact version, for example `git tag 0.1.1 && git push origin 0.1.1`.
+
+The release workflow builds the GitHub release and attaches artifact attestations for `main.js` and `manifest.json`.
