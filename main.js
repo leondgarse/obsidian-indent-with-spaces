@@ -1,8 +1,8 @@
-const { Plugin } = require("obsidian");
+const { Plugin, PluginSettingTab, Setting } = require("obsidian");
 const { keymap } = require("@codemirror/view");
 const { Prec } = require("@codemirror/state");
 
-const INDENT = 2;
+const DEFAULT_SETTINGS = { spaces: 2 };
 const LIST_RE = /^\s*([-*+]|\d+[.)])\s/;
 
 // Lines covered by a range; a selection ending at column 0 doesn't include that line
@@ -32,7 +32,7 @@ function dispatch(view, specs) {
   return true;
 }
 
-function indentMore(view) {
+function indentMore(view, size) {
   const { state } = view;
   if (inTable(state)) return false;
   const specs = [];
@@ -40,22 +40,22 @@ function indentMore(view) {
   for (const range of state.selection.ranges) {
     const line = state.doc.lineAt(range.head);
     const leading = line.text.match(/^\s*/)[0].length;
-    // Plain text with cursor after the indentation: pad to the next 2-column stop
+    // Plain text with cursor after the indentation: pad to the next indent stop
     if (range.empty && !LIST_RE.test(line.text) && range.head > line.from + leading) {
       const col = range.head - line.from;
-      specs.push({ from: range.head, insert: " ".repeat(INDENT - (col % INDENT)) });
+      specs.push({ from: range.head, insert: " ".repeat(size - (col % size)) });
       continue;
     }
     for (const l of linesOf(state.doc, range)) {
       if (seen.has(l.number)) continue;
       seen.add(l.number);
-      specs.push({ from: l.from, insert: " ".repeat(INDENT) });
+      specs.push({ from: l.from, insert: " ".repeat(size) });
     }
   }
   return dispatch(view, specs);
 }
 
-function indentLess(view) {
+function indentLess(view, size) {
   const { state } = view;
   if (inTable(state)) return false;
   const specs = [];
@@ -64,7 +64,7 @@ function indentLess(view) {
     for (const l of linesOf(state.doc, range)) {
       if (seen.has(l.number)) continue;
       seen.add(l.number);
-      const n = l.text.startsWith("\t") ? 1 : l.text.match(new RegExp(`^ {0,${INDENT}}`))[0].length;
+      const n = l.text.startsWith("\t") ? 1 : l.text.match(new RegExp(`^ {0,${size}}`))[0].length;
       if (n) specs.push({ from: l.from, to: l.from + n });
     }
   }
@@ -72,14 +72,40 @@ function indentLess(view) {
 }
 
 module.exports = class TwoSpaceIndent extends Plugin {
-  onload() {
+  async onload() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.addSettingTab(new IndentSettingTab(this.app, this));
     this.registerEditorExtension(
       Prec.highest(
         keymap.of([
-          { key: "Tab", run: indentMore },
-          { key: "Shift-Tab", run: indentLess },
+          { key: "Tab", run: (view) => indentMore(view, this.settings.spaces) },
+          { key: "Shift-Tab", run: (view) => indentLess(view, this.settings.spaces) },
         ])
       )
     );
   }
 };
+
+class IndentSettingTab extends PluginSettingTab {
+  constructor(app, plugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+
+  display() {
+    this.containerEl.empty();
+    new Setting(this.containerEl)
+      .setName("Spaces per indent")
+      .setDesc("Number of spaces Tab adds and Shift+Tab removes.")
+      .addSlider((slider) =>
+        slider
+          .setLimits(1, 8, 1)
+          .setValue(this.plugin.settings.spaces)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.spaces = value;
+            await this.plugin.saveData(this.plugin.settings);
+          })
+      );
+  }
+}
