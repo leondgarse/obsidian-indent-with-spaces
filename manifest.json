@@ -1,0 +1,10 @@
+{
+  "id": "two-space-indent",
+  "name": "Two Space Indent",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "Make Tab indent by 2 spaces and Shift+Tab unindent by 2 spaces.",
+  "author": "leondgarse",
+  "isDesktopOnly": false,
+  "authorUrl": "https://github.com/leondgarse"
+}
