@@ -8,7 +8,8 @@ This plugin makes <kbd>Tab</kbd> indent by 2 spaces and <kbd>Shift</kbd>+<kbd>Ta
 
 - **Tab on a list item, or with the cursor in a line's leading whitespace**: adds the indent at the start of the line.
 - **Tab with several lines selected**: indents every selected line, for example to move a whole code block under a list item.
-- **Tab in the middle of plain text**: inserts spaces up to the next indent stop.
+- **Tab in the middle of plain text**: not handled, so Obsidian or another plugin gets it.
+- **Cells of Live Preview tables**: not handled, so Tab / Shift+Tab move between cells as usual.
 - **Shift+Tab**: removes up to one indent of leading spaces (or one tab) from each selected line.
 - **Tables** (lines starting with `|`, indented or not): if [Advanced Tables](https://github.com/tgrosinger/advanced-tables-obsidian) is enabled, Tab / Shift+Tab run its **Next cell** / **Previous cell** commands. These also work in Live Preview, where Advanced Tables' own Tab binding is turned off, and Tab on a header-only row inserts the `| --- |` delimiter row. Without Advanced Tables, Tab is left to Obsidian.
 

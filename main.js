@@ -20,6 +20,11 @@ function inTable(state) {
   return state.selection.ranges.some((r) => state.doc.lineAt(r.head).text.trimStart().startsWith("|"));
 }
 
+// Live Preview renders tables with a small editor per cell; leave its Tab to Obsidian
+function inCellEditor(view) {
+  return !!(view.dom && view.dom.closest(".table-cell-wrapper"));
+}
+
 function dispatch(view, specs) {
   const changes = view.state.changes(specs);
   if (changes.empty) return true;
@@ -40,12 +45,8 @@ function indentMore(view, size) {
   for (const range of state.selection.ranges) {
     const line = state.doc.lineAt(range.head);
     const leading = line.text.match(/^\s*/)[0].length;
-    // Plain text with cursor after the indentation: pad to the next indent stop
-    if (range.empty && !LIST_RE.test(line.text) && range.head > line.from + leading) {
-      const col = range.head - line.from;
-      specs.push({ from: range.head, insert: " ".repeat(size - (col % size)) });
-      continue;
-    }
+    // Plain text with cursor after the indentation: leave Tab to Obsidian and other plugins
+    if (range.empty && !LIST_RE.test(line.text) && range.head > line.from + leading) return false;
     for (const l of linesOf(state.doc, range)) {
       if (seen.has(l.number)) continue;
       seen.add(l.number);
@@ -78,10 +79,15 @@ module.exports = class TwoSpaceIndent extends Plugin {
     this.registerEditorExtension(
       Prec.highest(
         keymap.of([
-          { key: "Tab", run: (view) => this.tableCommand(view, "next-cell") || indentMore(view, this.settings.spaces) },
+          {
+            key: "Tab",
+            run: (view) =>
+              !inCellEditor(view) && (this.tableCommand(view, "next-cell") || indentMore(view, this.settings.spaces)),
+          },
           {
             key: "Shift-Tab",
-            run: (view) => this.tableCommand(view, "previous-cell") || indentLess(view, this.settings.spaces),
+            run: (view) =>
+              !inCellEditor(view) && (this.tableCommand(view, "previous-cell") || indentLess(view, this.settings.spaces)),
           },
         ])
       )

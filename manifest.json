@@ -1,7 +1,7 @@
 {
   "id": "two-space-indent",
   "name": "Two Space Indent",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "minAppVersion": "1.0.0",
   "description": "Make Tab and Shift+Tab indent by a configurable number of spaces, 2 by default.",
   "author": "leondgarse",
