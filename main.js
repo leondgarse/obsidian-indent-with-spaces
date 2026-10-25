@@ -72,7 +72,7 @@ function indentLess(view, size) {
   return dispatch(view, specs);
 }
 
-module.exports = class TwoSpaceIndent extends Plugin {
+module.exports = class IndentWithSpaces extends Plugin {
   async onload() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
     this.addSettingTab(new IndentSettingTab(this.app, this));
