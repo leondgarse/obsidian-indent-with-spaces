@@ -78,11 +78,21 @@ module.exports = class TwoSpaceIndent extends Plugin {
     this.registerEditorExtension(
       Prec.highest(
         keymap.of([
-          { key: "Tab", run: (view) => indentMore(view, this.settings.spaces) },
-          { key: "Shift-Tab", run: (view) => indentLess(view, this.settings.spaces) },
+          { key: "Tab", run: (view) => this.tableCommand(view, "next-cell") || indentMore(view, this.settings.spaces) },
+          {
+            key: "Shift-Tab",
+            run: (view) => this.tableCommand(view, "previous-cell") || indentLess(view, this.settings.spaces),
+          },
         ])
       )
     );
+  }
+
+  // In a table, run the Advanced Tables command if it's enabled. Its own Tab binding
+  // is off in Live Preview, but its commands work in both editing modes.
+  tableCommand(view, command) {
+    if (!inTable(view.state)) return false;
+    return this.app.commands.executeCommandById(`table-editor-obsidian:${command}`) === true;
   }
 };
 
